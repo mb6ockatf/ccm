@@ -1,14 +1,5 @@
 #!/usr/bin/env bash
 set -o errexit -o pipefail -o noclobber
-repeat_char()
-{
-	local char="$1" n="$2"
-	[ -z "$char" ] && char="-"
-	[ -z "$n" ] && n=80
-	for ((i = 1; i < "$n"; i++)); do
-		echo -n "$char"
-	done
-}
 
 format_msg()
 {
@@ -24,7 +15,7 @@ usage()
 	echo -e "\t $name [-h, --help]"
 	echo -e "- compile c file and run it"
 	echo -e "\t $name file"
-	repeat_char - 80
+	printf '=%.0s' {1..80}
 	echo "mb6ockatf, Tue 09 May 2023 02:46:35 PM MSK"
 }
 
@@ -44,7 +35,7 @@ color::form_output()
 		echo -e "\t $name [-h, --help]"
 		echo -e "- get colored message"
 		echo -e "\t $name color message"
-		repeat_char
+		printf '=%.0s' {1..80}
 		echo "by @mb6ockatf, Mon 08 May 2023 09:05:30 PM MSK"
 		return 0
 	fi
@@ -150,30 +141,25 @@ border_mode()
 			plus) ;;
 			minus) ;;
 			multi) ;;
-			substract)
-				ans=$((a / b))
-				request="$"
-				;;
+			substract) ans=$((a / b)); request="$" ;;
 		esac
 		counter=$((counter++))
 	done
 }
 
-readonly MODES="plus minus multi substract"
-readonly FRAMES="list border gumlist gumborder"
-readonly TICK=$(color::form_output green '\xe2\x9c\x93')
-readonly CROSS=$(color::form_output red '\xe2\x9d\x8e')
-readonly SEPARATOR=$(repeat_char) END="\033[0m"
-readonly BLACK="\033[0;30m" BLACKB="\033[1;30m"
-readonly WHITE="\033[0;37m" WHITEB="\033[1;37m"
-readonly RED="\033[0;31m" REDB="\033[1;31m"
-readonly GREEN="\033[0;32m" GREENB="\033[1;32m"
-readonly YELLOW="\033[0;33m" YELLOWB="\033[1;33m"
-readonly BLUE="\033[0;34m" BLUEB="\033[1;34m"
-readonly PURPLE="\033[0;35m" PURPLEB="\033[1;35m"
-readonly LIGHTBLUE="\033[0;36m" LIGHTBLUEB="\033[1;36m"
-readonly GETOPT_FAIL_MESSAGE="$(getopt --test) failed in this environment"
-readonly LONGOPTS=mode:,frame:,range: OPTIONS=m:,f:,r:
+readonly MODES="plus minus multi substract" \
+	FRAMES="list border gumlist gumborder" \
+	TICK=$(color::form_output green '\xe2\x9c\x93') \
+	CROSS=$(color::form_output red '\xe2\x9d\x8e') \
+	SEPARATOR=$(printf '=%.0s' {1..100}) END="\033[0m" BLACK="\033[0;30m" \
+	BLACKB="\033[1;30m" WHITE="\033[0;37m" WHITEB="\033[1;37m" \
+	RED="\033[0;31m" REDB="\033[1;31m" GREEN="\033[0;32m" \
+	GREENB="\033[1;32m" YELLOW="\033[0;33m" YELLOWB="\033[1;33m" \
+	BLUE="\033[0;34m" BLUEB="\033[1;34m" PURPLE="\033[0;35m" \
+	PURPLEB="\033[1;35m" LIGHTBLUE="\033[0;36m" LIGHTBLUEB="\033[1;36m" \
+	GETOPT_FAIL_MESSAGE="$(getopt --test) failed in this environment" \
+	LONGOPTS=mode:,frame:,range:,help: OPTIONS=m:,f:,r:,h:
+echo "$LONGOPRS"
 ! getopt --test > /dev/null
 [[ ${PIPESTATUS[0]} -ne 4 ]] && echo "$GETOPT_FAIL_MESSAGE" && exit 1
 ! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" \
@@ -182,31 +168,12 @@ readonly LONGOPTS=mode:,frame:,range: OPTIONS=m:,f:,r:
 eval set -- "$PARSED"
 while true; do
 	case "$1" in
-		-h | --help)
-			usage
-			shift
-			break
-			;;
-		-m | --mode)
-			mode="$2"
-			shift 2
-			;;
-		-f | --frame)
-			frame="$2"
-			shift 2
-			;;
-		-r | --range)
-			range="$2"
-			shift 2
-			;;
-		--)
-			shift
-			break
-			;;
-		*)
-			format_message "Programming error"
-			exit 3
-			;;
+		-h | --help) usage; shift; break ;;
+		-m | --mode) mode="$2"; shift 2 ;;
+		-f | --frame) frame="$2"; shift 2 ;;
+		-r | --range) range="$2"; shift 2 ;;
+		--) shift; break ;;
+		*) format_message "Programming error"; exit 3 ;;
 	esac
 done
 is_value_in_list "$MODES" "$mode" || mode="plus"
@@ -216,5 +183,5 @@ case "$frame" in
 	list) list_mode "$mode" "$range" ;;
 	border) border_mode "$mode" "$range" ;;
 	gumlist) gum_list_mode "$mode" "$range" ;;
-	gumborder) bum_border_mode "$mode" "$range" ;;
+	gumborder) gum_border_mode "$mode" "$range" ;;
 esac
